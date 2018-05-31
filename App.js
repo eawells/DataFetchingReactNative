@@ -1,57 +1,57 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- * @flow
- */
-
 import React, { Component } from 'react';
 import {
   Platform,
   StyleSheet,
   Text,
-  View
+  ScrollView,
+  ActivityIndicator,
+  Image,
+  Dimensions
 } from 'react-native';
 
-const instructions = Platform.select({
-  ios: 'Press Cmd+R to reload,\n' +
-    'Cmd+D or shake for dev menu',
-  android: 'Double tap R on your keyboard to reload,\n' +
-    'Shake or press menu button for dev menu',
-});
-
 export default class App extends Component {
+  constructor() {
+    super()
+    this.state = {
+      productImages: [],
+      fetching: false
+    }
+  }
+
+  componentDidMount() {
+    this.setState({ fetching: true })
+    fetch('https://www.polar.com/en/products')
+    .then(response => response.json())
+    .then(products => products.map(product => product.image))
+    .then(productImages => this.setState({
+      productImages,
+      fetching: false
+    }))
+    .catch(err => console.error('error fetching products', err))
+  }
   render() {
     return (
-      <View style={styles.container}>
-        <Text style={styles.welcome}>
-          Welcome to React Native!
-        </Text>
-        <Text style={styles.instructions}>
-          To get started, edit App.js
-        </Text>
-        <Text style={styles.instructions}>
-          {instructions}
-        </Text>
-      </View>
+      <ScrollView horizontal={true}>
+        <ActivityIndicator size="large"
+        style={styles.spinner}
+        amimating={this.state.fetching} />
+        {this.state.productImages.map((uri, i) => (
+          <Image style={styles.thumb} key={i} source={{ uri }} />
+        ))}
+      </ScrollView>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF',
+  spinner: {
+    position: 'absolute',
+    height: Dimensions.get('window').height,
+    width: Dimensions.get('window').width
   },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
-  },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
-  },
+  thumb: {
+    width: 375,
+    resizeMode: 'cover'
+  }
+
 });
